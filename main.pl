@@ -1,32 +1,29 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -I ./lib/
 
 use strict;
 use warnings;
 use 5.01;
-use DBI;
+
+use SqlLogger;
+use CSVLogger;
 
 
-my $CREATE_TABLE = 0;
-my $EXERCISE_TABLE_NAME = "EXERCISE";
-my $DB_NAME = "test.db";
-
-# Initialization .
-my $dbh = open_db("SQLite", $DB_NAME);
-if (defined $dbh){
-  say "Database opened.";
+# Args parse.
+if ($#ARGV + 1 == 0){
+  say "Give logger type and file.";
+  die;
 }
-else {
-  die "Database open failed.";
+elsif ($#ARGV + 1 != 2){
+  die "Wrong number of arguments.";
 }
 
-if ($CREATE_TABLE == 1){
-  my $outcome = &create_table($dbh, $EXERCISE_TABLE_NAME);
-  if (defined $outcome){
-    say "Table created.";
-  }
-  else {
-    die "Table creation failed.";
-  }
+my ($logger_type, $file_name) = @ARGV;
+
+
+# Initialization.
+my $logger = create_logger($logger_type, $file_name);
+if (!defined $logger){
+  die "Logger creation failed.";
 }
 
 # Main loop.
@@ -41,7 +38,7 @@ while ($running){
     $running = 0;
   }
   elsif ($cmd eq "add_exercise"){
-    my $res = add_exercise($dbh, @tokens);
+    my $res = $logger->add_exercise(@tokens);
     if (defined $res){
       say "Executed.";
     }
@@ -54,54 +51,46 @@ while ($running){
   }
 }
 
-$dbh->disconnect();
 say "Bye!";
 
 
-sub open_db {
-  my ($driver, $database) = @_;
-  my $dns = "DBI:$driver:dbname=$database";
-  my $dbh = DBI->connect($dns, "", "", { RaiseError => 1 }) or die $DBI::errstr;
-  return $dbh;
-}
-
-sub create_table {
-  my ($dbh, $table_name) = @_;
-  my $stmt = qq(create table $table_name(
-      date int not null,
-      exercise_name text not null,
-      reps int not null,
-      weight real
-    ););
-  my $rv = $dbh->do($stmt);
-  if ($rv < 0){
-    say $DBI::errstr;
-    return undef;
-  }
-  return 0;
-}
-
-sub add_exercise {
-  my $dbh = shift @_;
+sub create_logger {
+  my $type = shift;
   my @args = @_;
-  if (@args < 2 || @args > 3){
-    return undef;
+  if ($type eq "SQL"){
+    my $CREATE_TABLE = 0;
+    my $DB_NAME = "test.db";
+    my $logger = SqlLogger->new("SQLite");
+    my $res = $logger->open_db($DB_NAME);
+    if (defined $res){
+      say "Database opened.";
+    }
+    else {
+      die "Database open failed.";
+    }
+    if ($CREATE_TABLE == 1){
+      my $outcome = $logger->create_exercise_table();
+      if (defined $outcome){
+        say "Table created.";
+      }
+      else {
+        die "Table creation failed.";
+      }
+    }
+    return $logger;
   }
-  elsif (@args == 2){
-    $args[2] = undef;
+  if ($type eq "CSV"){
+    my $logger = CSVLogger->new();
+    my $res = $logger->open_file($args[0]);
+    if (defined $res){
+      say "File opened.";
+    }
+    else {
+      die "File open failed.";
+    }
+    return $logger;
   }
-  my $date = time();
-
-  say "Adding exercise: @args";
-  my $stmt = qq(
-    INSERT INTO $EXERCISE_TABLE_NAME (DATE,EXERCISE_NAME,REPS,WEIGHT)
-    VALUES ($date, $args[0], $args[1], $args[2]);
-  );  # TODO: take care of the global variables.
-  my $rv = $dbh->do($stmt) or die $DBI::errstr;
-  if ($rv < 0){
-    say $DBI::errstr;
-    return undef;
-  }
-  return 0;
+  say "Logger type \"$type\" unknown.";
+  return undef;
 }
 
