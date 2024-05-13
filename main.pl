@@ -2,7 +2,9 @@
 
 use strict;
 use warnings;
+use Term::Form::ReadLine;
 use 5.01;
+
 
 use SqlLogger;
 use CSVLogger;
@@ -27,11 +29,12 @@ if (!defined $logger){
 }
 
 # Main loop.
+my $reader = Term::Form::ReadLine->new();
+my @history = ();
 my $running = 1;
 while ($running){
-  print "Enter command: ";
-  my $input = <STDIN>;
-  chomp($input);
+  my $input = $reader->readline("Enter command: ", {history => \@history});
+  push(@history, $input); 
   my @tokens = split(' ', $input);
   my $cmd = shift @tokens;
   if ($cmd eq "exit"){
