@@ -1,4 +1,6 @@
 
 *.db
 *.csv
+mpldir
+.venv
 
