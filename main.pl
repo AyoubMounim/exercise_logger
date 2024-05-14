@@ -31,7 +31,7 @@ my $reader = Reader->new();
 my @history = ();
 my $running = 1;
 while ($running){
-  my $input = $reader->readline("Enter command: ");
+  my $input = $reader->readline("Enter command: ", \@history);
   push(@history, $input); 
   my @tokens = split(' ', $input);
   my $cmd = shift @tokens;
