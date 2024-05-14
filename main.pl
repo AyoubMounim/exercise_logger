@@ -2,12 +2,10 @@
 
 use strict;
 use warnings;
-use Term::Form::ReadLine;
 use 5.01;
 
-
-use SqlLogger;
 use CSVLogger;
+use Reader;
 
 
 # Args parse.
@@ -27,13 +25,13 @@ my $logger = create_logger($logger_type, $file_name);
 if (!defined $logger){
   die "Logger creation failed.";
 }
+my $reader = Reader->new();
 
 # Main loop.
-my $reader = Term::Form::ReadLine->new();
 my @history = ();
 my $running = 1;
 while ($running){
-  my $input = $reader->readline("Enter command: ", {history => \@history});
+  my $input = $reader->readline("Enter command: ");
   push(@history, $input); 
   my @tokens = split(' ', $input);
   my $cmd = shift @tokens;
@@ -60,28 +58,6 @@ say "Bye!";
 sub create_logger {
   my $type = shift;
   my @args = @_;
-  if ($type eq "SQL"){
-    my $CREATE_TABLE = 0;
-    my $DB_NAME = "test.db";
-    my $logger = SqlLogger->new("SQLite");
-    my $res = $logger->open_db($DB_NAME);
-    if (defined $res){
-      say "Database opened.";
-    }
-    else {
-      die "Database open failed.";
-    }
-    if ($CREATE_TABLE == 1){
-      my $outcome = $logger->create_exercise_table();
-      if (defined $outcome){
-        say "Table created.";
-      }
-      else {
-        die "Table creation failed.";
-      }
-    }
-    return $logger;
-  }
   if ($type eq "CSV"){
     my $logger = CSVLogger->new();
     my $res = $logger->open_file($args[0]);

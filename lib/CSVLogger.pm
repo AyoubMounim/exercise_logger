@@ -4,9 +4,6 @@ package CSVLogger;
 use feature "say";
 
 
-my $EXERCISE_TABLE_NAME = "EXERCISE";
-
-
 sub new {
   my ($class) = @_;
   my $self = {
