@@ -1,5 +1,6 @@
 
 import csv
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping, Optional, Self
@@ -36,7 +37,10 @@ class DataPoint:
 def normalize_date(date: int) -> int:
     return int(date/(24*60*60.))
 
-def parse_volume_data(file: Path) -> Mapping[str, Mapping]:
+def parse_volume_data(file: Path) -> Optional[Mapping[str, Mapping]]:
+    if not file.exists():
+        return None
+
     def fact():
         return defaultdict(float)
 
@@ -68,8 +72,11 @@ def plot_volume_data(volume_data: Mapping[str, Mapping]) -> None:
 
 
 def main() -> None:
-    data_path = Path("./test.csv")
+    data_path = Path(sys.argv[1])
     data = parse_volume_data(data_path)
+    if not data:
+        print("Data parsing error.")
+        return
     plot_volume_data(data)
     return
 
