@@ -8,17 +8,7 @@ use CSVLogger;
 use Reader;
 
 
-# Args parse.
-if ($#ARGV + 1 == 0){
-  say "Give logger type and file.";
-  die;
-}
-elsif ($#ARGV + 1 != 2){
-  die "Wrong number of arguments.";
-}
-
-my ($logger_type, $file_name) = @ARGV;
-
+my ($logger_type, $file_name) = arg_parse();
 
 # Initialization.
 my $logger = create_logger($logger_type, $file_name);
@@ -71,5 +61,16 @@ sub create_logger {
   }
   say "Logger type \"$type\" unknown.";
   return undef;
+}
+
+sub arg_parse {
+  my @args = ("CSV", "./logger.csv");
+  if ($#ARGV + 1 > 1){
+    die "Too many arguments. Give log file path as only argument.";
+  }
+  elsif ($#ARGV + 1 == 1){
+    $args[1] = $ARGV[0];
+  }
+  return @args;
 }
 
