@@ -8,7 +8,6 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 
 
-
 @dataclass
 class DataPoint:
     date: int
