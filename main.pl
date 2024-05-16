@@ -8,7 +8,6 @@ use CSVLogger;
 use Reader;
 
 
-# comment
 my ($logger_type, $file_name) = arg_parse();
 
 # Initialization.
